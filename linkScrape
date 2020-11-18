@@ -1,0 +1,28 @@
+html_doc = '''
+<!DOCTYPE html>
+
+insert HTML code here
+
+'''
+
+# html_doc = open("migros html ul code 2140","w+")
+
+from bs4 import BeautifulSoup
+import requests
+import csv
+
+soup = BeautifulSoup(html_doc, 'html.parser')
+list =''
+
+# Get all URLS from <a> tags with attribute href
+for link in soup.find_all('a'):
+	 print(link.get('href'))
+	#list += link.get('href') + '\n'
+
+#Request data from the server using GET protocol,
+#r  = requests.get(url)
+#In order to retrieve the data from the response object convert the raw response to text
+#data = r.text
+
+
+#print(list)
