@@ -1,0 +1,63 @@
+from bs4 import BeautifulSoup
+import requests
+import csv
+import numpy as np
+import pandas as pd
+
+# open csv file containing the links that were scraped with linkscrape.py file and access the links
+f = open('insert_links_here.csv', 'r')
+reader = csv.reader(f)
+
+csvfile = open('content.csv', 'w', newline='', encoding='utf-8')
+writer = csv.writer(csvfile)
+
+links = []
+
+for row in reader:
+    links.append(row)
+
+# access the links and extract the information needed
+
+user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
+
+for link in links:
+    response = requests.get(link[0])
+    soup = BeautifulSoup(response.text, 'html.parser')
+    try:
+        title = soup.find(class_='sidebar-product-name').text.replace("\n","").replace(" ","").replace(',','') # clean the extracted data so you don't have to do it manually
+    except Exception as e: #needed because the Migros webshop is quite heterogeneous & a lot of data is unavailable
+        title = "none"
+    try:
+        table4 = soup.find(class_='mui-panel-body additional-information-panel-body').text.replace("\n", "").replace(" ", "").split("GTIN")
+        table41 = table4[1]
+        gtin = table41[0:13]
+    except Exception as e:
+        gtin = "none"
+    try:
+        table1 = soup.find(class_='table-dotted table-list table-two-columns').text.replace("\n", "").replace(" ", "").split("Verpackungsart")
+        table11 = table1[1]
+        packaging = table11[0:10]
+    except Exception as e:
+        packaging = "none"
+    try:
+        table2 = soup.find(class_='mui-panel-body additional-information-panel-body').text.replace("\n", "").replace(" ", "").split("Herkunft")
+        table21 = table2[1]
+        origin = table21[0:20]
+    except Exception as e:
+        origin = "none"
+    try:
+        table3 = soup.find_all(class_='sidebar-brandlabel-name')
+        label = str(table3).replace("<h2 class=","").replace("sidebar-brandlabel-name","").replace("</h2>","").replace(">","").replace('""','').replace('[','').replace(']','')
+    except Exception as e:
+        label = "none"
+    try:
+        table5 = soup.find(class_='table-dotted table-list table-two-columns').text.replace("\n", "").replace(" ", "").split("Saison")
+        table51 = table5[1]
+        seasonality = table51[0:18]
+    except Exception as e:
+        seasonality = "none"
+
+    zipped_lists = zip ([title], [gtin], [packaging], [origin], [seasonality], [label])
+
+    for row in zipped_lists: 
+        writer.writerow(row)
